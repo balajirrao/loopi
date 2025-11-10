@@ -53,10 +53,18 @@ interface RoutinePlannerProps {
   templates: RoutineTemplate[];
   history: CompletedRoutine[];
   onStartRoutine: (templateId: string, endTime: string) => void;
+  onManageTemplates: () => void;
   onSignOut: () => void;
 }
 
-const RoutinePlanner = ({ userEmail, templates, history, onStartRoutine, onSignOut }: RoutinePlannerProps) => {
+const RoutinePlanner = ({
+  userEmail,
+  templates,
+  history,
+  onStartRoutine,
+  onManageTemplates,
+  onSignOut
+}: RoutinePlannerProps) => {
   const displayName = useMemo(() => userEmail.split("@")[0], [userEmail]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(templates[0]?.id ?? "");
   const selectedTemplate = useMemo(
@@ -160,9 +168,14 @@ const RoutinePlanner = ({ userEmail, templates, history, onStartRoutine, onSignO
             Hi {displayName}, pick a template to run
           </h2>
         </div>
-        <button className="routine-signout" onClick={onSignOut}>
-          Sign out
-        </button>
+        <div className="routine-header__actions">
+          <button className="routine-manage" onClick={onManageTemplates} type="button">
+            Manage templates
+          </button>
+          <button className="routine-signout" onClick={onSignOut}>
+            Sign out
+          </button>
+        </div>
       </header>
 
       <section className="routine-config">
@@ -208,7 +221,9 @@ const RoutinePlanner = ({ userEmail, templates, history, onStartRoutine, onSignO
         {selectedTemplate ? (
           <div className="routine-planner__details">
             <div>
-              <p className="routine-config__label">Target finish time</p>
+              <label className="routine-config__label" htmlFor="targetEndTime">
+                Target finish time
+              </label>
               <div className="routine-time-input">
                 <input
                   id="targetEndTime"

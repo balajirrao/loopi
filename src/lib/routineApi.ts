@@ -511,3 +511,137 @@ export const resetRoutineRun = async (
     status: updatedRun.status as RoutineRunStatus
   };
 };
+
+const sanitiseTaskTitle = (title: string): string => title.trim();
+
+const formatOffset = (value: number | null | undefined): number | null => {
+  if (typeof value !== "number" || Number.isNaN(value) || value < 0) {
+    return null;
+  }
+  return value;
+};
+
+export interface RoutineTemplateTaskDraft {
+  id?: string;
+  title: string;
+  targetOffsetMinutes?: number | null;
+}
+
+export interface RoutineTemplateDraft {
+  id?: string;
+  name: string;
+  defaultEndTime: string;
+  tasks: RoutineTemplateTaskDraft[];
+  removedTaskIds?: string[];
+}
+
+export const saveRoutineTemplateDraft = async (
+  supabase: SupabaseClient,
+  draft: RoutineTemplateDraft
+): Promise<string> => {
+  const trimmedName = draft.name.trim();
+  if (!trimmedName) {
+    throw new Error("Template name is required");
+  }
+
+  const normalisedTime = normaliseTime(draft.defaultEndTime);
+  let templateId = draft.id;
+
+  if (templateId) {
+    const { error } = await supabase
+      .from("routine_templates")
+      .update({
+        name: trimmedName,
+        default_end_time: normalisedTime
+      })
+      .eq("id", templateId);
+
+    if (error) {
+      throw new Error(`Failed to update template: ${error.message}`);
+    }
+  } else {
+    const {
+      data,
+      error
+    } = await supabase
+      .from("routine_templates")
+      .insert({
+        name: trimmedName,
+        default_end_time: normalisedTime
+      })
+      .select("id")
+      .single();
+
+    if (error || !data) {
+      throw new Error(`Failed to create template: ${error?.message ?? "Unknown error"}`);
+    }
+
+    templateId = data.id;
+  }
+
+  const tasksToUpdate = draft.tasks
+    .filter((task) => task.id && sanitiseTaskTitle(task.title))
+    .map((task) => ({
+      id: task.id as string,
+      template_id: templateId,
+      title: sanitiseTaskTitle(task.title),
+      target_offset_minutes: formatOffset(task.targetOffsetMinutes ?? null)
+    }));
+
+  if (tasksToUpdate.length > 0) {
+    const { error } = await supabase
+      .from("routine_template_tasks")
+      .upsert(tasksToUpdate, { onConflict: "id" });
+
+    if (error) {
+      throw new Error(`Failed to update template tasks: ${error.message}`);
+    }
+  }
+
+  const tasksToInsert = draft.tasks
+    .filter((task) => !task.id && sanitiseTaskTitle(task.title))
+    .map((task) => ({
+      template_id: templateId,
+      title: sanitiseTaskTitle(task.title),
+      target_offset_minutes: formatOffset(task.targetOffsetMinutes ?? null)
+    }));
+
+  if (tasksToInsert.length > 0) {
+    const { error } = await supabase
+      .from("routine_template_tasks")
+      .insert(tasksToInsert);
+
+    if (error) {
+      throw new Error(`Failed to add template tasks: ${error.message}`);
+    }
+  }
+
+  const taskIdsToRemove = draft.removedTaskIds?.filter(Boolean) ?? [];
+  if (taskIdsToRemove.length > 0) {
+    const { error } = await supabase
+      .from("routine_template_tasks")
+      .delete()
+      .in("id", taskIdsToRemove);
+
+    if (error) {
+      throw new Error(`Failed to remove template tasks: ${error.message}`);
+    }
+  }
+
+  if (!templateId) {
+    throw new Error("Template identifier missing after save");
+  }
+
+  return templateId;
+};
+
+export const deleteRoutineTemplate = async (supabase: SupabaseClient, templateId: string): Promise<void> => {
+  const { error } = await supabase
+    .from("routine_templates")
+    .delete()
+    .eq("id", templateId);
+
+  if (error) {
+    throw new Error(`Failed to delete routine template: ${error.message}`);
+  }
+};

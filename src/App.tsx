@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import AuthForm from "./components/AuthForm";
-import RoutinePlanner from "./components/RoutinePlanner";
-import RoutineRunner from "./components/RoutineRunner";
+import RoutineBoard from "./components/RoutineBoard";
 import { endTimeIsoToTimeInput } from "./lib/routines";
 import type { CompletedRoutine, RoutineInstance, RoutineTemplate } from "./lib/routines";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabaseClient";
@@ -359,23 +358,20 @@ const App = () => {
 
   return (
     <div className="app-shell">
-      {activeRoutine ? (
-        <RoutineRunner
-          routine={activeRoutine}
-          onToggleTask={handleToggleTask}
-          onReset={handleResetRoutine}
-          onExit={handleExitRoutine}
-          onCompleteRoutine={handleCompleteRoutine}
-        />
-      ) : (
-        <RoutinePlanner
-          userEmail={session.user.email ?? "you"}
-          templates={templates}
-          history={completedRoutines}
-          onStartRoutine={handleStartRoutine}
-          onSignOut={handleSignOut}
-        />
-      )}
+      <RoutineBoard
+        userEmail={session.user.email ?? "you"}
+        templates={templates}
+        history={completedRoutines}
+        activeRoutine={activeRoutine}
+        supabase={supabase}
+        onStartRoutine={handleStartRoutine}
+        onToggleTask={handleToggleTask}
+        onResetRoutine={handleResetRoutine}
+        onExitRoutine={handleExitRoutine}
+        onCompleteRoutine={handleCompleteRoutine}
+        onTemplatesChanged={() => setTemplatesReloadToken((value) => value + 1)}
+        onSignOut={handleSignOut}
+      />
     </div>
   );
 };
