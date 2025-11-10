@@ -104,8 +104,10 @@ describe("RoutinePlanner", () => {
     ];
 
     const { timeInput } = renderPlanner({ templates });
-    expect(timeInput).not.toBeNull();
-    expect(timeInput?.value).toBe(validDefault);
+    if (!timeInput) {
+      throw new Error("Expected time input to be present");
+    }
+    expect(timeInput.value).toBe(validDefault);
 
     const tightTemplateButton = screen.getByRole("tab", { name: /tight window/i });
     fireEvent.click(tightTemplateButton);
