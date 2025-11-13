@@ -5,6 +5,7 @@ import RoutineBoard from "./components/RoutineBoard";
 import { endTimeIsoToTimeInput } from "./lib/routines";
 import type { CompletedRoutine, RoutineInstance, RoutineTemplate } from "./lib/routines";
 import { getSupabaseClient, isSupabaseConfigured } from "./lib/supabaseClient";
+import useScreenWakeLock from "./hooks/useScreenWakeLock";
 import {
   abandonRoutineRun,
   completeRoutineRun,
@@ -29,6 +30,7 @@ const App = () => {
   const [routineStateError, setRoutineStateError] = useState<string | null>(null);
   const [routineReloadToken, setRoutineReloadToken] = useState(0);
   const routineFetchIdRef = useRef(0);
+  useScreenWakeLock(true);
 
   const renderAppShell = (content: ReactNode) => <div className="app-shell">{content}</div>;
 
