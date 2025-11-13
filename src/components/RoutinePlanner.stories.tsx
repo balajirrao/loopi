@@ -11,9 +11,9 @@ const meta: Meta<typeof RoutinePlanner> = {
   args: {
     userEmail: "caregiver@example.com",
     templates: sampleTemplates,
-    history: sampleHistory,
     onStartRoutine: () => undefined,
     onManageTemplates: () => undefined,
+    onShowHistory: () => undefined,
     onSignOut: () => undefined
   }
 };
@@ -25,7 +25,6 @@ export const DefaultPlanner: Story = {};
 
 export const EmptyState: Story = {
   args: {
-    templates: [],
-    history: []
+    templates: []
   }
 };

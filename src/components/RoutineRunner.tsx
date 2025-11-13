@@ -33,7 +33,10 @@ const useRelativeNow = (refreshMs = 15_000) => {
   return now;
 };
 
-const describeCountdown = (task: RoutineTaskInstance, now: number): { label: string; tone: CountdownTone } | null => {
+const describeCountdown = (
+  task: RoutineTaskInstance,
+  now: number
+): { label: string; tone: CountdownTone } | null => {
   if (!task.targetTimeIso) {
     return null;
   }
@@ -52,7 +55,7 @@ const describeCountdown = (task: RoutineTaskInstance, now: number): { label: str
   if (diffMinutes === 0) {
     return { label: "Due now", tone: "warning" };
   }
-  return { label: `${Math.abs(diffMinutes)} min overdue`, tone: "danger" };
+  return { label: `${Math.abs(diffMinutes)} min late`, tone: "danger" };
 };
 
 const RoutineRunner = ({ routine, onToggleTask, onReset, onExit, onCompleteRoutine }: RoutineRunnerProps) => {
@@ -150,14 +153,16 @@ const RoutineRunner = ({ routine, onToggleTask, onReset, onExit, onCompleteRouti
           <div className="task-card__meta">
             {bucket === "timed" && task.targetTimeIso ? (
               <>
-                <span className="task-card__time">Due {formatTime(task.targetTimeIso)}</span>
-                <span
-                  className={`task-card__countdown task-card__countdown--${
-                    task.completed ? "complete" : countdown?.tone ?? "ok"
-                  }`}
-                >
-                  {task.completed ? "Completed" : countdown?.label}
-                </span>
+                <div className="task-card__meta-row">
+                  <span className="task-card__time">Due {formatTime(task.targetTimeIso)}</span>
+                  <span
+                    className={`task-card__countdown task-card__countdown--${
+                      task.completed ? "complete" : countdown?.tone ?? "ok"
+                    }`}
+                  >
+                    {task.completed ? "Completed" : countdown?.label}
+                  </span>
+                </div>
               </>
             ) : (
               <span
@@ -168,17 +173,6 @@ const RoutineRunner = ({ routine, onToggleTask, onReset, onExit, onCompleteRouti
             )}
           </div>
         </div>
-        <span className="task-card__status">
-          {routineArchived
-            ? "Routine completed"
-            : task.completed
-            ? "Completed"
-            : bucket === "timed"
-            ? toggleAllowed
-              ? "Tap when finished to stay on pace"
-              : "Complete earlier timed tasks first"
-            : "Tap to check off when finished"}
-        </span>
       </button>
     );
   };
@@ -219,40 +213,44 @@ const RoutineRunner = ({ routine, onToggleTask, onReset, onExit, onCompleteRouti
         )}
       </div>
 
-      <div className="task-sections">
-        <section className="task-section task-section--timed">
-          <div className="task-section__header">
-            <div>
-              <p className="task-section__eyebrow">On the clock</p>
-              <h3>Timed tasks</h3>
+      <section className="routine-template-details routine-template-details--runner">
+        <h3>Task breakdown</h3>
+        <div className="task-sections">
+          <section className="task-section task-section--timed">
+            <div className="task-section__header">
+              <div>
+                <p className="task-section__eyebrow">On the clock</p>
+                <h3>Timed tasks</h3>
+              </div>
+              <span className="task-section__hint">Must follow order</span>
             </div>
-            <span className="task-section__hint">Must follow order</span>
-          </div>
-          {timedTasks.length === 0 ? (
-            <p className="task-section__empty">This routine does not have timed steps.</p>
-          ) : (
-            <div className="task-grid" role="list">
-              {timedTasks.map((entry) => renderTaskCard(entry, "timed"))}
-            </div>
-          )}
-        </section>
+            {timedTasks.length === 0 ? (
+              <p className="task-section__empty">This routine does not have timed steps.</p>
+            ) : (
+              <div className="task-grid" role="list">
+                {timedTasks.map((entry) => renderTaskCard(entry, "timed"))}
+              </div>
+            )}
+          </section>
 
-        <section className="task-section task-section--flex">
-          <div className="task-section__header">
-            <div>
-              <p className="task-section__eyebrow">Flexible</p>
-              <h3>Anytime tasks</h3>
+          <section className="task-section task-section--flex">
+            <div className="task-section__header">
+              <div>
+                <p className="task-section__eyebrow">Flexible</p>
+                <h3>Anytime tasks</h3>
+              </div>
+              <span className="task-section__hint">Do when it fits</span>
             </div>
-            <span className="task-section__hint">Do when it fits</span>
-          </div>
-          {flexibleTasks.length === 0 ? (
-            <p className="task-section__empty">Everything today is on a schedule.</p>
-          ) : null}
-          <div className="task-grid" role="list">
-            {flexibleTasks.map((entry) => renderTaskCard(entry, "flexible"))}
-          </div>
-        </section>
-      </div>
+            {flexibleTasks.length === 0 ? (
+              <p className="task-section__empty">Everything today is on a schedule.</p>
+            ) : (
+              <div className="task-grid" role="list">
+                {flexibleTasks.map((entry) => renderTaskCard(entry, "flexible"))}
+              </div>
+            )}
+          </section>
+        </div>
+      </section>
 
       <footer className="routine-footer">
         <button className="routine-reset" type="button" onClick={onReset} disabled={routineArchived}>

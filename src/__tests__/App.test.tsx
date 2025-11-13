@@ -155,7 +155,7 @@ describe("App routine board states", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Plan a routine/i)).toBeVisible();
+      expect(screen.getByRole("button", { name: /Manage templates/i })).toBeVisible();
     });
 
     expect(mockFetchRoutineTemplates).toHaveBeenCalledTimes(1);
@@ -179,7 +179,7 @@ describe("App routine board states", () => {
     render(<App />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Plan a routine/i)).toBeVisible();
+      expect(screen.getByRole("button", { name: /Manage templates/i })).toBeVisible();
     });
 
     fireEvent.click(screen.getByRole("button", { name: /Manage templates/i }));

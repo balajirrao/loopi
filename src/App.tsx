@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import AuthForm from "./components/AuthForm";
 import RoutineBoard from "./components/RoutineBoard";
@@ -30,16 +30,16 @@ const App = () => {
   const [routineReloadToken, setRoutineReloadToken] = useState(0);
   const routineFetchIdRef = useRef(0);
 
+  const renderAppShell = (content: ReactNode) => <div className="app-shell">{content}</div>;
+
   if (!isSupabaseConfigured) {
-    return (
-      <div className="app-shell">
-        <div className="glass-panel">
-          <h1>Supabase is not configured</h1>
-          <p>
-            Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in an <code>.env</code>{" "}
-            file before running the app.
-          </p>
-        </div>
+    return renderAppShell(
+      <div className="glass-panel">
+        <h1>Supabase is not configured</h1>
+        <p>
+          Set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in an <code>.env</code> file before
+          running the app.
+        </p>
       </div>
     );
   }
@@ -283,96 +283,82 @@ const App = () => {
   };
 
   if (initializing) {
-    return (
-      <div className="app-shell">
-        <div className="glass-panel loading-state">
-          <span className="loading-spinner" aria-hidden="true" />
-          <p>Loading your routines…</p>
-        </div>
+    return renderAppShell(
+      <div className="glass-panel loading-state">
+        <span className="loading-spinner" aria-hidden="true" />
+        <p>Loading your routines…</p>
       </div>
     );
   }
 
   if (!session) {
-    return (
-      <div className="app-shell">
-        <AuthForm />
-      </div>
-    );
+    return renderAppShell(<AuthForm />);
   }
 
   if (templatesLoading || routineStateLoading) {
-    return (
-      <div className="app-shell">
-        <div className="glass-panel loading-state">
-          <span className="loading-spinner" aria-hidden="true" />
-          <p>Loading your routines…</p>
-        </div>
+    return renderAppShell(
+      <div className="glass-panel loading-state">
+        <span className="loading-spinner" aria-hidden="true" />
+        <p>Loading your routines…</p>
       </div>
     );
   }
 
   if (templatesError) {
-    return (
-      <div className="app-shell">
-        <div className="glass-panel">
-          <h2>We hit a snag loading your templates</h2>
-          <p>{templatesError}</p>
-          <button
-            className="routine-start"
-            type="button"
-            onClick={() => {
-              setTemplatesError(null);
-              setTemplatesLoading(true);
-              setTemplatesReloadToken((value) => value + 1);
-            }}
-          >
-            Try again
-          </button>
-        </div>
+    return renderAppShell(
+      <div className="glass-panel">
+        <h2>We hit a snag loading your templates</h2>
+        <p>{templatesError}</p>
+        <button
+          className="routine-start"
+          type="button"
+          onClick={() => {
+            setTemplatesError(null);
+            setTemplatesLoading(true);
+            setTemplatesReloadToken((value) => value + 1);
+          }}
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
   if (routineStateError) {
-    return (
-      <div className="app-shell">
-        <div className="glass-panel">
-          <h2>We hit a snag loading your routines</h2>
-          <p>{routineStateError}</p>
-          <button
-            className="routine-start"
-            type="button"
-            onClick={() => {
-              setRoutineStateError(null);
-              setRoutineStateLoading(true);
-              setRoutineReloadToken((value) => value + 1);
-            }}
-          >
-            Try again
-          </button>
-        </div>
+    return renderAppShell(
+      <div className="glass-panel">
+        <h2>We hit a snag loading your routines</h2>
+        <p>{routineStateError}</p>
+        <button
+          className="routine-start"
+          type="button"
+          onClick={() => {
+            setRoutineStateError(null);
+            setRoutineStateLoading(true);
+            setRoutineReloadToken((value) => value + 1);
+          }}
+        >
+          Try again
+        </button>
       </div>
     );
   }
 
-  return (
-    <div className="app-shell">
-      <RoutineBoard
-        userEmail={session.user.email ?? "you"}
-        templates={templates}
-        history={completedRoutines}
-        activeRoutine={activeRoutine}
-        supabase={supabase}
-        onStartRoutine={handleStartRoutine}
-        onToggleTask={handleToggleTask}
-        onResetRoutine={handleResetRoutine}
-        onExitRoutine={handleExitRoutine}
-        onCompleteRoutine={handleCompleteRoutine}
-        onTemplatesChanged={() => setTemplatesReloadToken((value) => value + 1)}
-        onSignOut={handleSignOut}
-      />
-    </div>
+  return renderAppShell(
+    <RoutineBoard
+      userEmail={session.user.email ?? "you"}
+      templates={templates}
+      history={completedRoutines}
+      activeRoutine={activeRoutine}
+      supabase={supabase}
+      onStartRoutine={handleStartRoutine}
+      onToggleTask={handleToggleTask}
+      onResetRoutine={handleResetRoutine}
+      onExitRoutine={handleExitRoutine}
+      onCompleteRoutine={handleCompleteRoutine}
+      onTemplatesChanged={() => setTemplatesReloadToken((value) => value + 1)}
+      onSignOut={handleSignOut}
+    />
   );
 };
 

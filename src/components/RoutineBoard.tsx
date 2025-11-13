@@ -3,6 +3,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import RoutinePlanner from "./RoutinePlanner";
 import RoutineRunner from "./RoutineRunner";
 import RoutineTemplateEditor from "./RoutineTemplateEditor";
+import RoutineHistoryView from "./RoutineHistoryView";
 import type { CompletedRoutine, RoutineInstance, RoutineTemplate } from "../lib/routines";
 
 interface RoutineBoardProps {
@@ -18,7 +19,7 @@ interface RoutineBoardProps {
   onCompleteRoutine: () => void;
   onTemplatesChanged: () => void;
   onSignOut: () => void;
-  initialView?: "planner" | "editor";
+  initialView?: "planner" | "editor" | "history";
 }
 
 const RoutineBoard = ({
@@ -36,7 +37,7 @@ const RoutineBoard = ({
   onSignOut,
   initialView = "planner"
 }: RoutineBoardProps) => {
-  const [showTemplateEditor, setShowTemplateEditor] = useState(initialView === "editor");
+  const [boardView, setBoardView] = useState<"planner" | "editor" | "history">(initialView);
 
   if (activeRoutine) {
     return (
@@ -50,24 +51,28 @@ const RoutineBoard = ({
     );
   }
 
-  if (showTemplateEditor) {
+  if (boardView === "editor") {
     return (
       <RoutineTemplateEditor
         templates={templates}
         supabase={supabase}
-        onClose={() => setShowTemplateEditor(false)}
+        onClose={() => setBoardView("planner")}
         onTemplatesChanged={onTemplatesChanged}
       />
     );
+  }
+
+  if (boardView === "history") {
+    return <RoutineHistoryView history={history} onClose={() => setBoardView("planner")} />;
   }
 
   return (
     <RoutinePlanner
       userEmail={userEmail}
       templates={templates}
-      history={history}
       onStartRoutine={onStartRoutine}
-      onManageTemplates={() => setShowTemplateEditor(true)}
+      onManageTemplates={() => setBoardView("editor")}
+      onShowHistory={() => setBoardView("history")}
       onSignOut={onSignOut}
     />
   );

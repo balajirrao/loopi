@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import RoutinePlanner from "../RoutinePlanner";
-import type { CompletedRoutine, RoutineTemplate, RoutineTemplateTask } from "../../lib/routines";
+import type { RoutineTemplate, RoutineTemplateTask } from "../../lib/routines";
 
 const timeStringMinutesAhead = (minutesAhead: number) => {
   const future = new Date(Date.now() + minutesAhead * 60_000);
@@ -32,15 +32,13 @@ const buildTemplate = (overrides: Partial<RoutineTemplate> = {}): RoutineTemplat
     ]
 });
 
-const defaultHistory: CompletedRoutine[] = [];
-
 const renderPlanner = (overrides: Partial<ComponentProps<typeof RoutinePlanner>> = {}) => {
   const props: ComponentProps<typeof RoutinePlanner> = {
     userEmail: "test@example.com",
     templates: overrides.templates ?? [buildTemplate()],
-    history: overrides.history ?? defaultHistory,
     onStartRoutine: overrides.onStartRoutine ?? vi.fn(),
     onManageTemplates: overrides.onManageTemplates ?? vi.fn(),
+    onShowHistory: overrides.onShowHistory ?? vi.fn(),
     onSignOut: overrides.onSignOut ?? vi.fn()
   };
 
@@ -139,5 +137,13 @@ describe("RoutinePlanner", () => {
     const { startButton } = renderPlanner({ templates: [] });
     expect(startButton).toBeNull();
     expect(screen.getByText(/no templates yet/i)).toBeVisible();
+  });
+
+  it("invokes onShowHistory when the nav button is pressed", () => {
+    const onShowHistory = vi.fn();
+    renderPlanner({ onShowHistory });
+    const historyButton = screen.getByRole("button", { name: /completed routines/i });
+    fireEvent.click(historyButton);
+    expect(onShowHistory).toHaveBeenCalled();
   });
 });

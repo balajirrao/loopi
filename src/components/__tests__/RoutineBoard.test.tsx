@@ -98,7 +98,7 @@ describe("RoutineBoard", () => {
     expect(screen.getByText(/mock template editor/i)).toBeVisible();
 
     fireEvent.click(screen.getByRole("button", { name: /close editor/i }));
-    expect(screen.getByText(/plan a routine/i)).toBeVisible();
+    expect(screen.getByRole("button", { name: /manage templates/i })).toBeVisible();
   });
 
   it("can start directly in the template editor view", () => {

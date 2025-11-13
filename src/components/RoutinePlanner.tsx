@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { CompletedRoutine, RoutineTemplate } from "../lib/routines";
+import type { RoutineTemplate } from "../lib/routines";
 import { formatTime } from "../lib/routines";
 
 const minutesFromNow = (minutesAhead: number): string => {
@@ -51,21 +51,20 @@ const suggestEndTimeForTemplate = (template?: RoutineTemplate): string => {
 interface RoutinePlannerProps {
   userEmail: string;
   templates: RoutineTemplate[];
-  history: CompletedRoutine[];
   onStartRoutine: (templateId: string, endTime: string) => void;
   onManageTemplates: () => void;
+  onShowHistory: () => void;
   onSignOut: () => void;
 }
 
 const RoutinePlanner = ({
-  userEmail,
+  userEmail: _userEmail,
   templates,
-  history,
   onStartRoutine,
   onManageTemplates,
+  onShowHistory,
   onSignOut
 }: RoutinePlannerProps) => {
-  const displayName = useMemo(() => userEmail.split("@")[0], [userEmail]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(templates[0]?.id ?? "");
   const selectedTemplate = useMemo(
     () => templates.find((template) => template.id === selectedTemplateId) ?? templates[0],
@@ -161,21 +160,19 @@ const RoutinePlanner = ({
 
   return (
     <div className="routine-shell glass-panel routine-planner">
-      <header className="routine-header">
-        <div className="routine-greeting">
-          <p className="routine-overline">Plan a routine</p>
-          <h2 className="routine-title">
-            Hi {displayName}, pick a template to run
-          </h2>
-        </div>
-        <div className="routine-header__actions">
-          <button className="routine-manage" onClick={onManageTemplates} type="button">
+      <header className="routine-header routine-header--planner">
+        <span className="routine-brand">Loopi</span>
+        <nav className="routine-nav" aria-label="Planner actions">
+          <button className="routine-nav__link" onClick={onManageTemplates} type="button">
             Manage templates
           </button>
-          <button className="routine-signout" onClick={onSignOut}>
+          <button className="routine-nav__link" onClick={onShowHistory} type="button">
+            Completed routines
+          </button>
+          <button className="routine-nav__link routine-nav__link--danger" onClick={onSignOut} type="button">
             Sign out
           </button>
-        </div>
+        </nav>
       </header>
 
       <section className="routine-config">
@@ -291,35 +288,6 @@ const RoutinePlanner = ({
         )}
       </section>
 
-      <section className="routine-history">
-        <div className="routine-history__header">
-          <h3>Completed routines</h3>
-          <span>{history.length} complete</span>
-        </div>
-        {history.length === 0 ? (
-          <p className="routine-history__empty">Run a routine to build streaks and see completion history.</p>
-        ) : (
-          <ul>
-            {history.map((item) => (
-              <li key={item.id}>
-                <div className="routine-history__meta">
-                  <span className="routine-history__badge" aria-hidden="true">
-                    {badgeForName(item.name)}
-                  </span>
-                  <div>
-                    <strong>{item.name}</strong>
-                    <p>
-                      Finished {new Date(item.completedAtIso).toLocaleString([], { hour: "numeric", minute: "2-digit" })}
-                      {" · "}
-                      {item.tasks.filter((task) => task.completed).length}/{item.tasks.length} tasks checked
-                    </p>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 };
